@@ -1,0 +1,5 @@
+{
+  "neovim/nvim-lspconfig",
+  version = "v0.1.8"   -- stable, no deprecation warning
+}
+
