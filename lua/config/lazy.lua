@@ -50,6 +50,7 @@ local plugin_files = {
     "plugins.toggleterm",
     "plugins.nvim-tree",
     "plugins.osc52",
+    "plugins.minimap",
 }
 
 for _, plugin_file in ipairs(plugin_files) do
