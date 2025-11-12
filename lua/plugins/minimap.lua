@@ -1,5 +1,5 @@
 return {
-    "gorilla051/neominimap.nvim",
+    "Isrothy/neominimap.nvim",
     dependencies = { "nvim-treesitter/nvim-treesitter" },
     lazy = false,
     config = function()
