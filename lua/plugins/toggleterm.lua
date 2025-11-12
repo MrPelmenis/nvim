@@ -123,101 +123,12 @@ return {
             
             current_visible_terminal = term_id
             
+            -- Always enter insert mode in terminal
             vim.defer_fn(function()
-                vim.cmd('startinsert')
-            end, 50)
-        end
-
-        -- Terminal selector floating window
-        local selector_buf = nil
-        local selector_win = nil
-
-        local function close_selector()
-            if selector_win and vim.api.nvim_win_is_valid(selector_win) then
-                vim.api.nvim_win_close(selector_win, true)
-                selector_win = nil
-            end
-            if selector_buf and vim.api.nvim_buf_is_valid(selector_buf) then
-                vim.api.nvim_buf_delete(selector_buf, { force = true })
-                selector_buf = nil
-            end
-        end
-
-        local function show_terminal_selector()
-            -- Close existing selector if open
-            close_selector()
-
-            -- Get sorted list of active terminals
-            local sorted_ids = {}
-            for id, _ in pairs(active_terminals) do
-                if active_terminals[id] then
-                    table.insert(sorted_ids, id)
+                if vim.api.nvim_buf_get_option(0, 'buftype') == 'terminal' then
+                    vim.cmd('startinsert')
                 end
-            end
-            table.sort(sorted_ids)
-
-            if #sorted_ids == 0 then
-                return
-            end
-
-            -- Create buffer
-            selector_buf = vim.api.nvim_create_buf(false, true)
-            
-            -- Build content
-            local lines = { "┌─ Terminals ─┐" }
-            local current_term = get_current_terminal_id() or current_visible_terminal
-            
-            for _, id in ipairs(sorted_ids) do
-                local prefix = (id == current_term) and "▶ " or "  "
-                table.insert(lines, prefix .. "Terminal " .. id)
-            end
-            table.insert(lines, "└─────────────┘")
-            
-            vim.api.nvim_buf_set_lines(selector_buf, 0, -1, false, lines)
-            
-            -- Calculate dimensions
-            local width = 20
-            local height = #lines
-            local col = vim.o.columns - width - 2
-            local row = 2
-            
-            -- Create window
-            selector_win = vim.api.nvim_open_win(selector_buf, false, {
-                relative = 'editor',
-                width = width,
-                height = height,
-                col = col,
-                row = row,
-                style = 'minimal',
-                border = 'rounded',
-                focusable = false,
-            })
-            
-            -- Set highlighting
-            vim.api.nvim_buf_set_option(selector_buf, 'modifiable', false)
-            vim.api.nvim_win_set_option(selector_win, 'winblend', 10)
-            
-            -- Highlight current terminal line
-            local current_line = 0
-            for i, id in ipairs(sorted_ids) do
-                if id == current_term then
-                    current_line = i
-                    break
-                end
-            end
-            
-            if current_line > 0 then
-                vim.api.nvim_buf_add_highlight(selector_buf, -1, 'Visual', current_line, 0, -1)
-            end
-        end
-
-        -- Update selector when switching terminals
-        local original_switch = switch_to_terminal
-        switch_to_terminal = function(term_id)
-            original_switch(term_id)
-            if selector_win and vim.api.nvim_win_is_valid(selector_win) then
-                show_terminal_selector()
-            end
+            end, 100)
         end
 
         -- Ctrl+/: Open a new terminal
@@ -226,15 +137,6 @@ return {
             active_terminals[next_terminal_id] = true
             switch_to_terminal(next_terminal_id)
         end, { noremap = true, silent = true, desc = "Open new terminal" })
-
-        -- Ctrl+Shift+T: Toggle terminal selector
-        vim.keymap.set({'n', 'i', 't'}, '<C-S-t>', function()
-            if selector_win and vim.api.nvim_win_is_valid(selector_win) then
-                close_selector()
-            else
-                show_terminal_selector()
-            end
-        end, { noremap = true, silent = true, desc = "Toggle terminal selector" })
 
         -- Ctrl+t: Focus terminal (from editor)
         vim.keymap.set({'n', 'i'}, '<C-t>', function()
@@ -256,10 +158,36 @@ return {
             current_visible_terminal = nil
         end, { noremap = true, silent = true, desc = "Hide terminals" })
 
+        -- Function to focus on the first non-terminal window (editor)
+        local function focus_editor()
+            local wins = vim.api.nvim_list_wins()
+            for _, win in ipairs(wins) do
+                local buf = vim.api.nvim_win_get_buf(win)
+                local buf_type = vim.api.nvim_buf_get_option(buf, 'buftype')
+                -- Find first window that's not a terminal
+                if buf_type ~= 'terminal' then
+                    vim.api.nvim_set_current_win(win)
+                    return
+                end
+            end
+        end
+
         -- Ctrl+e: Focus editor (go back to previous window)
-        vim.keymap.set('t', '<C-e>', '<C-\\><C-n><Cmd>wincmd p<CR>', { noremap = true, silent = true, desc = "Focus editor" })
-        vim.keymap.set('n', '<C-e>', '<Cmd>wincmd p<CR>', { noremap = true, silent = true, desc = "Focus previous window" })
-        vim.keymap.set('i', '<C-e>', '<Esc><Cmd>wincmd p<CR>', { noremap = true, silent = true, desc = "Focus previous window" })
+        vim.keymap.set('t', '<C-e>', function()
+            -- Exit terminal mode first
+            local key = vim.api.nvim_replace_termcodes('<C-\\><C-n>', true, false, true)
+            vim.api.nvim_feedkeys(key, 'n', false)
+            vim.defer_fn(function()
+                focus_editor()
+            end, 10)
+        end, { noremap = true, silent = true, desc = "Focus editor" })
+        vim.keymap.set('n', '<C-e>', function()
+            focus_editor()
+        end, { noremap = true, silent = true, desc = "Focus editor" })
+        vim.keymap.set('i', '<C-e>', function()
+            vim.cmd('stopinsert')
+            focus_editor()
+        end, { noremap = true, silent = true, desc = "Focus editor" })
 
         -- Ctrl+w: Close current terminal permanently
         vim.keymap.set('t', '<C-w>', function()
@@ -274,27 +202,27 @@ return {
                 -- Remove from active terminals
                 active_terminals[term_id] = nil
                 
-                -- Close current terminal
-                vim.cmd(term_id .. 'ToggleTerm')
-                
-                -- Switch to another terminal (don't go to editor)
+                -- If there's another terminal, switch to it FIRST before closing
                 if next_term then
+                    -- Switch to next terminal first
+                    switch_to_terminal(next_term)
+                    -- Then close the old terminal in the background
                     vim.defer_fn(function()
-                        switch_to_terminal(next_term)
-                    end, 50)
+                        pcall(vim.cmd, term_id .. 'ToggleTerm')
+                        -- Delete the buffer
+                        vim.defer_fn(function()
+                            pcall(vim.cmd, 'bwipeout! term://*toggleterm#' .. term_id)
+                        end, 100)
+                    end, 150)
                 else
-                    -- If no other terminals, stay in the terminal buffer area
+                    -- If no other terminals, close and go to editor
                     current_visible_terminal = nil
-                    close_selector()
+                    vim.cmd(term_id .. 'ToggleTerm')
+                    -- Delete the buffer
                     vim.defer_fn(function()
-                        vim.cmd('wincmd p')
-                    end, 50)
+                        pcall(vim.cmd, 'bwipeout! term://*toggleterm#' .. term_id)
+                    end, 150)
                 end
-                
-                -- Delete the buffer
-                vim.defer_fn(function()
-                    pcall(vim.cmd, 'bwipeout! term://*toggleterm#' .. term_id)
-                end, 150)
             end
         end, { noremap = true, silent = true, desc = "Close terminal" })
 
@@ -340,7 +268,8 @@ return {
         vim.api.nvim_create_autocmd('BufEnter', {
             callback = function()
                local buf_type = vim.api.nvim_buf_get_option(0, 'buftype')
-                if buf_type == 'terminal' and vim.api.nvim_get_mode().mode ~= 'i' then
+                local mode = vim.api.nvim_get_mode().mode
+                if buf_type == 'terminal' and mode ~= 't' and mode ~= 'i' then
                     vim.cmd('startinsert')
                 end
             end,
