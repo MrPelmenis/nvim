@@ -11,7 +11,7 @@ return {
                 },
             },
         })
-        vim.keymap.set('n', '<C-b>', '<Cmd>NvimTreeToggle<CR>', { desc = "Toggle File Tree" })
+        vim.keymap.set('n', '<C-b>', '<Cmd>NvimTreeFindFileToggle<CR>', { desc = "Toggle File Tree" })
     end
 }
 
