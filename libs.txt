@@ -1,0 +1,19 @@
+sudo apt update && sudo apt install -y \
+  neovim \
+  git \
+  ripgrep \
+  fonts-noto-color-emoji \
+  nodejs \
+  php-cli \
+  php-mbstring \
+  clang \
+  clangd \
+  build-essential \
+  xclip \
+  universal-ctags \
+  fd-find \
+  python3 \
+  python3-pip \
+  lua5.4 && \
+curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash - && \
+sudo apt install -y nodejs
