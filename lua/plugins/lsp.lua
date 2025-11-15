@@ -107,7 +107,7 @@ return {
             require("mason-lspconfig").setup({
                 ensure_installed = {
                     "clangd",              -- C/C++
-                    "typescript-language-server",  -- JavaScript/JSX/TypeScript
+                    "ts_ls",  -- JavaScript/JSX/TypeScript
                     "html",            -- HTML
                     "cssls",             -- CSS
                     "intelephense",        -- PHP
