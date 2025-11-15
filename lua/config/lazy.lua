@@ -159,6 +159,13 @@ vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
     end,
 })
 
+vim.api.nvim_create_user_command('W', function()
+    local ok, _ = pcall(vim.cmd, 'write')
+    if not ok then
+        vim.cmd('silent! write !sudo tee % >/dev/null')
+    end
+end, {})
+
 -- Language-specific settings
 vim.api.nvim_create_autocmd("FileType", {
     pattern = { "javascript", "typescript", "typescriptreact", "jsx", "tsx" },
