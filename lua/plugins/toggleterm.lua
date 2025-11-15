@@ -9,7 +9,7 @@ return {
             auto_scroll = true,
             start_in_insert = true,
             persist_size = true,
-            persist_mode = true,
+            persist_mode = false,
             winbar = {
                 enabled = true,
                 name_formatter = function(term)
@@ -151,6 +151,8 @@ return {
                 active_terminals[1] = true
             end
             local term_to_open = current_visible_terminal or 1
+            -- Force-open in the **current tab**
+            vim.cmd(term_to_open .. "ToggleTerm")
             if not active_terminals[term_to_open] then
                 active_terminals[term_to_open] = true
             end
