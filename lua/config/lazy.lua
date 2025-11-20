@@ -54,6 +54,7 @@ local plugin_files = {
     "plugins.lsp",
     "plugins.rainbow-delimiters",
     "plugins.autoclose",
+    "plugins.treesitter-context",
 }
 
 for _, plugin_file in ipairs(plugin_files) do
