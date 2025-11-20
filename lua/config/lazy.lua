@@ -44,6 +44,7 @@ vim.opt.rtp:prepend(lazypath)
 local plugins = {}
 local plugin_files = {
     "plugins.tokyonight",
+    "plugins.vscode",
     "plugins.treesitter",
     "plugins.telescope",
     "plugins.flash",
@@ -168,65 +169,10 @@ vim.api.nvim_create_user_command('W', function()
     end
 end, {})
 
--- Language-specific settings
-vim.api.nvim_create_autocmd("FileType", {
-    pattern = { "javascript", "typescript", "typescriptreact", "jsx", "tsx" },
-    callback = function()
-        vim.bo.tabstop = 4
-        vim.bo.softtabstop = 4
-        vim.bo.shiftwidth = 4
-    end,
-})
 
-vim.api.nvim_create_autocmd("FileType", {
-    pattern = { "html", "css", "scss" },
-    callback = function()
-        vim.bo.tabstop = 4
-        vim.bo.softtabstop = 4
-        vim.bo.shiftwidth = 4
-    end,
-})
-
-vim.api.nvim_create_autocmd("FileType", {
-    pattern = { "php" },
-    callback = function()
-        vim.bo.tabstop = 4
-        vim.bo.softtabstop = 4
-        vim.bo.shiftwidth = 4
-    end,
-})
-
-vim.api.nvim_create_autocmd("FileType", {
-    pattern = { "c", "cpp" },
-    callback = function()
-        vim.bo.tabstop = 4
-        vim.bo.softtabstop = 4
-        vim.bo.shiftwidth = 4
-        vim.bo.cindent = true
-    end,
-})
-
-vim.api.nvim_create_autocmd("FileType", {
-    pattern = { "make" },
-    callback = function()
-        vim.bo.tabstop = 4
-        vim.bo.softtabstop = 4
-        vim.bo.shiftwidth = 4
-        vim.bo.expandtab = false  -- Makefiles require tabs
-    end,
-})
-
-vim.api.nvim_create_autocmd("FileType", {
-    pattern = { "nginx", "apache" },
-    callback = function()
-        vim.bo.tabstop = 4
-        vim.bo.softtabstop = 4
-        vim.bo.shiftwidth = 4
-    end,
-})
 
 -- ==========================
 -- Colorscheme
 -- ==========================
-vim.cmd("colorscheme tokyonight-night")
+vim.cmd("colorscheme vscode")
 
