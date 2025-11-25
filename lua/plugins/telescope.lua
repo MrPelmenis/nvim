@@ -64,7 +64,7 @@ return {
                 -- Different file, open in new tab
                 actions.close(prompt_bufnr)
                 -- Use vim.cmd with proper escaping
-                vim.defer_fn(function()
+          vim.defer_fn(function()
                     vim.cmd('tabnew ' .. vim.fn.fnameescape(file_path))
                 end, 10)
             end
@@ -73,6 +73,15 @@ return {
         -- Configure telescope with custom action
         require("telescope").setup({
             defaults = {
+                 layout_strategy = "horizontal",
+                    layout_config = {
+                        horizontal = {
+                            preview_width = 0.65,  -- increase preview
+                            results_width = 0.35,  -- decrease results list
+                        },
+                        width = 0.98,  -- optional: almost full screen
+                        height = 0.90, -- optional: nice large window
+                    },
                 mappings = {
                     i = {
                         ["<CR>"] = open_in_new_tab,
