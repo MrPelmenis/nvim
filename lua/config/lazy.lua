@@ -86,9 +86,6 @@ vim.keymap.set('i', '<C-v>', '<C-r>+', { desc = "Paste from system clipboard in 
 vim.api.nvim_set_keymap("v", ">", ">gv", { noremap = true, silent = true })
 vim.api.nvim_set_keymap("v", "<", "<gv", { noremap = true, silent = true })
 
--- Delete without affecting register
-vim.keymap.set('n', 'd', '"_d', { noremap = true })
-vim.keymap.set('x', 'd', '"_d', { noremap = true })
 
 -- Save shortcut (normal & insert mode)
 vim.keymap.set({'n', 'i'}, '<C-s>', function() vim.cmd("write") end, { desc = "Save file" })
