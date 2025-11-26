@@ -40,6 +40,10 @@ return {
             -- Ensure clipboard option is set to use the custom provider
             vim.opt.clipboard = "unnamedplus"
             
+
+            vim.o.laststatus = 2      -- ensures statusline always visible
+            vim.o.statusline = "%f"   -- only show filename, no right section
+
             -- Print a message to confirm OSC52 is active
             if is_ssh_session() then
                 vim.notify("OSC52 clipboard enabled for SSH session", vim.log.levels.INFO)

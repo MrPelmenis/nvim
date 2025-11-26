@@ -81,87 +81,20 @@ vim.keymap.set({'n', 'v'}, '<C-c>', '"+y', { desc = "Copy to system clipboard" }
 vim.keymap.set({'n', 'v'}, '<C-v>', '"+p', { desc = "Paste from system clipboard" })
 vim.keymap.set('i', '<C-v>', '<C-r>+', { desc = "Paste from system clipboard in insert mode" })
 
+-- Stay in visual mode after shifting
+vim.api.nvim_set_keymap("v", ">", ">gv", { noremap = true, silent = true })
+vim.api.nvim_set_keymap("v", "<", "<gv", { noremap = true, silent = true })
+
+-- Delete without affecting register
+vim.keymap.set('n', 'd', '"_d', { noremap = true })
+vim.keymap.set('x', 'd', '"_d', { noremap = true })
+
 -- Save shortcut (normal & insert mode)
 vim.keymap.set({'n', 'i'}, '<C-s>', function() vim.cmd("write") end, { desc = "Save file" })
 
 -- Select all (Ctrl+a)
 vim.keymap.set('n', '<C-a>', 'ggVG', { noremap = true, desc = "Select entire file" })
 
-
--- ==========================
--- File Type Associations
--- ==========================
--- React/JSX files
-vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
-    pattern = { "*.jsx", "*.tsx" },
-    callback = function()
-        vim.bo.filetype = "typescriptreact"
-    end,
-})
-
--- Tailwind CSS
-vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
-    pattern = { "*.css" },
-    callback = function()
-        -- Check if it's likely a Tailwind file (you can adjust this logic)
-        local content = vim.fn.readfile(vim.fn.expand("%"), "", 10)
-        for _, line in ipairs(content) do
-            if line:match("@tailwind") or line:match("@apply") then
-                vim.bo.filetype = "css"
-                break
-            end
-        end
-    end,
-})
-
--- Makefile detection
-vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
-    pattern = { "Makefile", "makefile", "*.mk", "*.make" },
-    callback = function()
-        vim.bo.filetype = "make"
-    end,
-})
-
--- Nginx/OpenResty config files
-vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
-    pattern = { "*.conf", "nginx.conf", "*.nginx" },
-    callback = function()
-        -- Try to detect nginx configs
-        local filename = vim.fn.expand("%:t")
-        if filename:match("nginx") or vim.fn.getcwd():match("nginx") then
-            vim.bo.filetype = "nginx"
-        end
-    end,
-})
-
--- Apache config files
-vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
-    pattern = { "httpd.conf", ".htaccess", "apache*.conf" },
-    callback = function()
-        vim.bo.filetype = "apache"
-    end,
-})
-
--- C/C++ header files
-vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
-    pattern = { "*.h", "*.hpp", "*.hxx" },
-    callback = function()
-        local ext = vim.fn.expand("%:e")
-        if ext == "hpp" or ext == "hxx" then
-            vim.bo.filetype = "cpp"
-        else
-            -- Try to detect C vs C++ based on content
-            local content = vim.fn.readfile(vim.fn.expand("%"), "", 5)
-            for _, line in ipairs(content) do
-                if line:match("namespace") or line:match("class ") or line:match("template") then
-                    vim.bo.filetype = "cpp"
-                    return
-                end
-            end
-            vim.bo.filetype = "c"
-        end
-    end,
-})
 
 vim.api.nvim_create_user_command('W', function()
     local ok, _ = pcall(vim.cmd, 'write')
@@ -170,7 +103,10 @@ vim.api.nvim_create_user_command('W', function()
     end
 end, {})
 
-
+vim.g.neovide_padding_top = 0
+vim.g.neovide_padding_bottom = 0
+vim.g.neovide_padding_left = 0
+vim.g.neovide_padding_right = 0
 
 -- ==========================
 -- Colorscheme

@@ -28,15 +28,26 @@ return {
     end)
 
     -- Configure Mason
-    require("mason").setup({})
-    require("mason-lspconfig").setup({
-      ensure_installed = {
-        "clangd",           -- C/C++
-      },
-      handlers = {
-        lsp_zero.default_setup,
-      },
-    })
+	require("mason").setup({})
+	require("mason-lspconfig").setup({
+  	ensure_installed = { "clangd" },
+          handlers = {
+           function(server)
+           local opts = {}
+           if server == "clangd" then
+            opts.cmd = {
+              "clangd",
+              "-DBUILD_DISCOVERY_SERVER",
+              "-DBUILD_ABC"
+            }
+           end
+         -- fallback to default setup for all servers
+         lsp_zero.default_setup(server, opts)
+         end,
+         },
+	})
+    
+
 
     -- Configure nvim-cmp for autocompletion
     local cmp = require("cmp")
