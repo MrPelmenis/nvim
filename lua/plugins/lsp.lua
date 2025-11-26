@@ -38,7 +38,8 @@ return {
             opts.cmd = {
               "clangd",
               "-DBUILD_DISCOVERY_SERVER",
-              "-DBUILD_ABC"
+              "-DBUILD_ABC",
+              "-DBUILD_AUTHORIZATION_SERVER"
             }
            end
          -- fallback to default setup for all servers

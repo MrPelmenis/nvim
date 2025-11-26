@@ -55,6 +55,7 @@ local plugin_files = {
     "plugins.rainbow-delimiters",
     "plugins.autoclose",
     "plugins.treesitter-context",
+    "plugins.sessions",
 }
 
 for _, plugin_file in ipairs(plugin_files) do
@@ -95,13 +96,6 @@ vim.keymap.set({'n', 'i'}, '<C-s>', function() vim.cmd("write") end, { desc = "S
 -- Select all (Ctrl+a)
 vim.keymap.set('n', '<C-a>', 'ggVG', { noremap = true, desc = "Select entire file" })
 
-
-vim.api.nvim_create_user_command('W', function()
-    local ok, _ = pcall(vim.cmd, 'write')
-    if not ok then
-        vim.cmd('silent! write !sudo tee % >/dev/null')
-    end
-end, {})
 
 vim.g.neovide_padding_top = 0
 vim.g.neovide_padding_bottom = 0
