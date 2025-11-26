@@ -78,7 +78,7 @@ vim.keymap.set('i', '<C-f>', '<Esc>/', { desc = "Search in current file" })
 vim.keymap.set('n', '<Esc>', '<Cmd>nohlsearch<CR>', { desc = "Clear search highlight" })
 
 -- Clipboard
-vim.keymap.set({'n', 'v'}, '<C-c>', '"+y', { desc = "Copy to system clipboard" })
+vim.keymap.set({'n', 'v'}, '<C-c>', '"+ygv', { desc = "Copy to system clipboard" })
 vim.keymap.set({'n', 'v'}, '<C-v>', '"+p', { desc = "Paste from system clipboard" })
 vim.keymap.set('i', '<C-v>', '<C-r>+', { desc = "Paste from system clipboard in insert mode" })
 
@@ -96,11 +96,6 @@ vim.keymap.set({'n', 'i'}, '<C-s>', function() vim.cmd("write") end, { desc = "S
 -- Select all (Ctrl+a)
 vim.keymap.set('n', '<C-a>', 'ggVG', { noremap = true, desc = "Select entire file" })
 
-
-vim.g.neovide_padding_top = 0
-vim.g.neovide_padding_bottom = 0
-vim.g.neovide_padding_left = 0
-vim.g.neovide_padding_right = 0
 
 -- ==========================
 -- Colorscheme
