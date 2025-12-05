@@ -17,7 +17,6 @@ vim.opt.ignorecase = true
 vim.opt.smartcase = true  -- If search contains uppercase, then case-sensitive
 
 -- Terminal keycode setup for Windows/WSL
--- Enable keycode timeout to help recognize special keys
 vim.opt.ttimeout = true
 vim.opt.ttimeoutlen = 50
 
@@ -55,7 +54,6 @@ local plugin_files = {
     "plugins.rainbow-delimiters",
     "plugins.autoclose",
     "plugins.treesitter-context",
-    "plugins.sessions",
 }
 
 for _, plugin_file in ipairs(plugin_files) do

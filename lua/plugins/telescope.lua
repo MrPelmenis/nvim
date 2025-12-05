@@ -5,7 +5,8 @@ return {
     config = function()
         local builtin = require("telescope.builtin")
         
-        -- Custom action to open file in new tab (or do nothing if same file)
+        -- Custom action to open file in new tab, jump to existing tab, 
+        -- and jump to the correct line/column from search results.
         local function open_in_new_tab(prompt_bufnr)
             local actions = require("telescope.actions")
             local action_state = require("telescope.actions.state")
@@ -15,57 +16,89 @@ return {
                 return
             end
             
-            -- Get file path - Telescope entries have the path in entry.path
-            local file_path = entry.path
-            if not file_path then
-                -- Try to get from entry value or filename
-                file_path = entry.value or entry.filename
-            end
+            -- 1. Extract file path and location info
+            local file_path = entry.path or entry.value or entry.filename
+            
+            -- Fallback for entries without a direct path field (e.g., some extensions)
             if not file_path and entry[1] then
-                -- Fallback: construct path from cwd and filename
                 local picker = action_state.get_current_picker(prompt_bufnr)
-                local cwd = picker and picker.cwd
-                if not cwd then
-                    cwd = vim.fn.getcwd()
-                end
+                local cwd = picker and picker.cwd or vim.fn.getcwd()
                 file_path = vim.fn.fnamemodify(cwd .. "/" .. entry[1], ":p")
             end
             
             if not file_path then
-                -- If we still don't have a path, just use default action
                 actions.select_default(prompt_bufnr)
                 return
             end
             
-            -- Normalize the new file path
+            -- Location data from live_grep/grep_string results
+            local line_num = entry.lnum
+            local col_num = entry.col
             local normalized_new = vim.fn.fnamemodify(file_path, ':p')
             
-            -- Check if file is already open in any tab
-            local file_already_open = false
+            local found_tab = nil
+            local found_win = nil
+
+            -- 2. Check if the file is already open and find its tab/window
             for _, tab in ipairs(vim.api.nvim_list_tabpages()) do
                 for _, win in ipairs(vim.api.nvim_tabpage_list_wins(tab)) do
                     local buf = vim.api.nvim_win_get_buf(win)
                     local buf_name = vim.api.nvim_buf_get_name(buf)
+                    
                     if buf_name ~= "" then
                         local normalized_buf = vim.fn.fnamemodify(buf_name, ':p')
                         if normalized_buf == normalized_new then
-                            file_already_open = true
+                            found_tab = tab
+                            found_win = win
                             break
                         end
                     end
                 end
-                if file_already_open then break end
+                if found_tab then break end
             end
             
-            if file_already_open then
-                -- Same file already open, just close telescope
-                actions.close(prompt_bufnr)
+            actions.close(prompt_bufnr) -- Close Telescope window
+
+            if found_tab then
+                -- 3a. File already open: Jump to existing tab/window and position cursor
+                
+                vim.api.nvim_set_current_tabpage(found_tab)
+                vim.api.nvim_set_current_win(found_win)
+
+                vim.defer_fn(function()
+                    -- Jump to the line and column from the grep result
+                    if line_num and type(line_num) == 'number' then
+                        -- Use "G" command to go to line number
+                        vim.cmd('normal! ' .. line_num .. 'G') 
+                        if col_num and type(col_num) == 'number' then
+                             -- Go to column and center the view (zt)
+                             vim.cmd('normal! ' .. col_num .. '|zt')
+                        else
+                             -- Center the view on the line if only line number is known
+                            vim.cmd('normal! zz')
+                        end
+                    end
+                end, 0)
+                
             else
-                -- Different file, open in new tab
-                actions.close(prompt_bufnr)
-                -- Use vim.cmd with proper escaping
-          vim.defer_fn(function()
-                    vim.cmd('tabnew ' .. vim.fn.fnameescape(file_path))
+                -- 3b. File not open: Open in new tab and position cursor
+                
+                -- Construct command to open file and jump to line number (if available)
+                local cmd = 'tabnew ' .. vim.fn.fnameescape(file_path)
+                
+                -- Prepend line number to command if it exists: e.g., ":10 tabnew file.lua"
+                if line_num and type(line_num) == 'number' then
+                    cmd = line_num .. ' ' .. cmd
+                end
+
+                -- Execute the command
+                vim.defer_fn(function()
+                    vim.cmd(cmd)
+                    
+                    -- Jump to column after the file/tab is created
+                    if col_num and type(col_num) == 'number' then
+                        vim.cmd('normal! ' .. col_num .. '|zt')
+                    end
                 end, 10)
             end
         end
@@ -84,20 +117,19 @@ return {
                     },
                 mappings = {
                     i = {
+                        -- Map <CR> (Enter) to your custom function in Insert mode
                         ["<CR>"] = open_in_new_tab,
                     },
                     n = {
+                        -- Map <CR> (Enter) to your custom function in Normal mode
                         ["<CR>"] = open_in_new_tab,
                     },
                 },
             },
         })
         
+        -- Keymaps
         vim.keymap.set('n', '<C-p>', builtin.find_files, { desc = "Telescope find files" })
         vim.keymap.set('n', '<A-f>', builtin.live_grep, { desc = "Telescope live grep" })
-        
-        -- Tab navigation is now handled in toggleterm.lua to avoid conflicts
-        -- The keybinds check if we're in a terminal and route accordingly
     end
 }
-
