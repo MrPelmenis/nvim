@@ -32,6 +32,7 @@ return {
                 "ts_ls",  -- JavaScript/TypeScript (Note: 'tsserver' was renamed to 'ts_ls')
                 "eslint", -- Linter
                 "lua_ls", -- Lua
+                "pylsp",
             },
             handlers = {
                 -- The default handler for all servers
