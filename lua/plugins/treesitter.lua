@@ -1,11 +1,24 @@
 return {
     "nvim-treesitter/nvim-treesitter",
+    -- Upstream rewrote nvim-treesitter on `main` (Neovim 0.11+ and new API).
+    -- Pin to the legacy `master` branch to keep the classic `nvim-treesitter.configs` API.
+    branch = "master",
+    lazy = false,
     build = ":TSUpdate",
     dependencies = {
         "windwp/nvim-ts-autotag",
     },
     config = function()
-        require("nvim-treesitter.configs").setup({
+        local ok, configs = pcall(require, "nvim-treesitter.configs")
+        if not ok then
+            vim.notify(
+                "nvim-treesitter.configs not found. Run :Lazy sync to reinstall nvim-treesitter (pinned to master).",
+                vim.log.levels.ERROR
+            )
+            return
+        end
+
+        configs.setup({
             ensure_installed = {
                 "javascript", "typescript", "tsx",
                 "html", "css", "scss",

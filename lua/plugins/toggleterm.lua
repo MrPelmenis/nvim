@@ -129,15 +129,15 @@ return {
             current_visible_terminal = term_id
             
             -- Always enter insert mode in terminal
-            vim.defer_fn(function()
-                if vim.api.nvim_buf_get_option(0, 'buftype') == 'terminal' then
-                    vim.cmd('startinsert')
-                end
-            end, 100)
+            --vim.defer_fn(function()
+             --   if vim.api.nvim_buf_get_option(0, 'buftype') == 'terminal' then
+              --      vim.cmd('startinsert')
+               -- end
+            --end, 100)
         end
 
         -- Ctrl+/: Open a new terminal
-        vim.keymap.set({'n', 'i', 't'}, '<C-_>', function()
+        vim.keymap.set({'n', 'i', 't'}, '<C-/>', function()
             next_terminal_id = next_terminal_id + 1
             active_terminals[next_terminal_id] = true
             switch_to_terminal(next_terminal_id)

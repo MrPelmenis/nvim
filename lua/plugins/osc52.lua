@@ -1,37 +1,35 @@
 return {
     "ojroques/nvim-osc52",
     config = function()
-        require("osc52").setup({
+        local osc52 = require("osc52")
+        
+        osc52.setup({
             max_length = 0,
             silent = true,
             trim_whitespace = true,
         })
 
-        -- 1. Check if the X11 Forwarding tunnel is actually active
-        local has_display = vim.env.DISPLAY ~= nil
-
-        if has_display then
-            -- If we have an X11 tunnel, use the native system clipboard (xclip)
-            -- This works with GNOME Terminal!
-            vim.opt.clipboard = "unnamedplus"
-            -- We don't need to do anything else; Neovim handles xclip automatically.
-        else
-            -- 2. Fallback: No X11 tunnel found, try to use OSC52
-            -- (Note: This will only work if you switch away from GNOME Terminal later)
-            local function copy(lines, _)
-                require("osc52").copy(table.concat(lines, "\n"))
-            end
-
-            local function paste()
-                return { vim.fn.split(vim.fn.getreg(""), "\n"), vim.fn.getregtype("") }
-            end
-
-            vim.g.clipboard = {
-                name = "osc52",
-                copy = { ["+"] = copy, ["*"] = copy },
-                paste = { ["+"] = paste, ["*"] = paste },
-            }
-            vim.opt.clipboard = "unnamedplus"
+        -- Force OSC 52 for everything. Ignore X11/DISPLAY.
+        local function copy(lines, _)
+            osc52.copy(table.concat(lines, "\n"))
         end
+
+        local function paste()
+            -- Note: OSC52 'paste' is technically limited by terminal security.
+            -- This fallback uses the internal register.
+            return { vim.fn.split(vim.fn.getreg(""), "\n"), vim.fn.getregtype("") }
+        end
+
+        vim.g.clipboard = {
+            name = "osc52",
+            copy = { ["+"] = copy, ["*"] = copy },
+            paste = { ["+"] = paste, ["*"] = paste },
+        }
+        
+        vim.opt.clipboard = "unnamedplus"
+
+        -- Optional: specific keymap if you want to copy manually
+        vim.keymap.set('n', '<leader>y', osc52.copy_operator, {desc = "Copy to system clipboard via OSC52"})
+        vim.keymap.set('v', '<leader>y', osc52.copy_visual, {desc = "Copy to system clipboard via OSC52"})
     end,
 }
