@@ -51,7 +51,7 @@ local plugin_files = {
     "plugins.nvim-tree",
     "plugins.osc52",
     "plugins.lsp",
-    "plugins.rainbow-delimiters",
+--    "plugins.rainbow-delimiters",
     "plugins.autoclose",
     "plugins.treesitter-context",
 }

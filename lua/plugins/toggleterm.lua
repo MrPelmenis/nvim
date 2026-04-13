@@ -4,6 +4,7 @@ return {
     config = function()
         require("toggleterm").setup({
             size = 15,
+            shell = "zsh --login",
             direction = "horizontal",
             close_on_exit = true,
             auto_scroll = true,
@@ -242,7 +243,7 @@ return {
         end, { noremap = true, silent = true, desc = "Close terminal/tab" })
 
         -- Ctrl+PageDown: Next terminal (when in terminal) or Next tab (when in editor)
-        vim.keymap.set({'n', 't', 'i'}, '<C-PageDown>', function()
+        vim.keymap.set({'n', 't', 'i'}, '<C-]>', function()
             if is_terminal_buffer() then
                 -- Terminal navigation
                 local current_id = get_current_terminal_id()
@@ -262,7 +263,7 @@ return {
         end, { noremap = true, silent = true, desc = "Next terminal/tab" })
 
         -- Ctrl+PageUp: Previous terminal (when in terminal) or Previous tab (when in editor)
-        vim.keymap.set({'n', 't', 'i'}, '<C-PageUp>', function()
+        vim.keymap.set({'n', 't', 'i'}, '<C-[>', function()
             if is_terminal_buffer() then
                 -- Terminal navigation
                 local current_id = get_current_terminal_id()
