@@ -92,6 +92,9 @@ vim.keymap.set({'n', 'i'}, '<C-s>', function() vim.cmd("write") end, { desc = "S
 -- Select all (Ctrl+a)
 vim.keymap.set('n', '<C-a>', 'ggVG', { noremap = true, desc = "Select entire file" })
 
+-- sqitch tabs
+vim.keymap.set('n', '<Tab>', '<Cmd>tabnext<CR>', { desc = "Next Tab" })
+vim.keymap.set('n', '<S-Tab>', '<Cmd>tabprev<CR>', { desc = "Prev Tab" })
 
 -- ==========================
 -- Colorscheme

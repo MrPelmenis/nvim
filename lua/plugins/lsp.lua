@@ -85,14 +85,14 @@ return {
                     })
                 end,
 
-                -- Specific handler for Rust (Casing Rules & Autoformat Pre-reqs)
+                -- Specific handler for Rust (Casing Rules lint configuration)
                 ["rust_analyzer"] = function()
                     require("lspconfig").rust_analyzer.setup({
                         capabilities = capabilities,
                         settings = {
                             ["rust-analyzer"] = {
                                 checkOnSave = {
-                                    command = "clippy", -- Triggers Clippy lint checks on save to catch snake_case violations
+                                    command = "clippy", -- Runs Clippy lint checks on save to catch snake_case violations
                                 },
                                 diagnostics = {
                                     enable = true,
@@ -221,9 +221,9 @@ return {
             local spos = vim.fn.screenpos(winid, diag_lnum, diag_col)
 
             local screen_row = (spos.row and spos.row > 0) and spos.row or
-                vim.fn.screenpos(winid, cursor[1], cursor_col + 1).row
+            vim.fn.screenpos(winid, cursor[1], cursor_col + 1).row
             local screen_col = (spos.col and spos.col > 0) and spos.col or
-                vim.fn.screenpos(winid, cursor[1], cursor_col + 1).col
+            vim.fn.screenpos(winid, cursor[1], cursor_col + 1).col
             if not screen_row or screen_row == 0 or not screen_col or screen_col == 0 then
                 return
             end
@@ -312,21 +312,6 @@ return {
                         open_diag_popup()
                     end
                 end, opts)
-
-                -- Autoformat-on-save logic engine
-                local client = vim.lsp.get_client_by_id(event.data.client_id)
-                if client and client.supports_method("textDocument/formatting") then
-                    local format_is_saving = false
-                    vim.api.nvim_create_autocmd("BufWritePre", {
-                        buffer = event.buf,
-                        callback = function()
-                            if format_is_saving then return end
-                            format_is_saving = true
-                            vim.lsp.buf.format({ async = false, id = client.id })
-                            format_is_saving = false
-                        end,
-                    })
-                end
             end,
         })
 
