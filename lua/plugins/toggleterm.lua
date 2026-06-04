@@ -6,7 +6,7 @@ return {
             size = 15,
             shell = "zsh --login",
             direction = "horizontal",
-            close_on_exit = true,
+           close_on_exit = true,
             auto_scroll = true,
             start_in_insert = true,
             persist_size = true,
@@ -138,7 +138,7 @@ return {
         end
 
         -- Ctrl+/: Open a new terminal
-        vim.keymap.set({'n', 'i', 't'}, '<C-/>', function()
+        vim.keymap.set({'n', 'i', 't'}, '<C-q>', function()
             next_terminal_id = next_terminal_id + 1
             active_terminals[next_terminal_id] = true
             switch_to_terminal(next_terminal_id)

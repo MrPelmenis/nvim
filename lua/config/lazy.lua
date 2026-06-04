@@ -52,7 +52,6 @@ local plugin_files = {
     "plugins.osc52",
     "plugins.lsp",
 --    "plugins.rainbow-delimiters",
-    "plugins.autoclose",
     "plugins.treesitter-context",
 }
 
@@ -76,9 +75,11 @@ vim.keymap.set('i', '<C-f>', '<Esc>/', { desc = "Search in current file" })
 vim.keymap.set('n', '<Esc>', '<Cmd>nohlsearch<CR>', { desc = "Clear search highlight" })
 
 -- Clipboard
-vim.keymap.set({'n', 'v'}, '<C-c>', '"+y', { desc = "Copy to system clipboard" })
+vim.keymap.set('v', '<D-c>', '"+y<Esc>', { desc = "Copy to system clipboard (Cmd)" })
+vim.keymap.set('v', '<C-c>', '"+y<Esc>', { desc = "Copy to system clipboard" })
 vim.keymap.set({'n', 'v'}, '<C-v>', '"+p', { desc = "Paste from system clipboard" })
-vim.keymap.set('i', '<C-v>', '<C-r>+', { desc = "Paste from system clipboard in insert mode" })
+vim.keymap.set({'n', 'v'}, '<D-v>', '"+p', { desc = "Paste from system clipboard (Cmd)" })
+vim.keymap.set('i', '<D-v>', '<C-r>+', { desc = "Paste from system clipboard in insert mode" })
 
 -- Stay in visual mode after shifting
 vim.api.nvim_set_keymap("v", ">", ">gv", { noremap = true, silent = true })

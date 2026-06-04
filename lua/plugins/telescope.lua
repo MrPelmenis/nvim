@@ -130,6 +130,6 @@ return {
 
         -- Keymaps
         vim.keymap.set('n', '<C-p>', builtin.find_files, { desc = "Telescope find files" })
-        vim.keymap.set('n', '<A-f>', builtin.live_grep, { desc = "Telescope live grep" })
+        vim.keymap.set('n', '<A-p>', builtin.live_grep, { desc = "Telescope live grep" })
     end
 }
