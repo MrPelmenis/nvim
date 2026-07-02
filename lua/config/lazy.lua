@@ -14,7 +14,7 @@ vim.g.mapleader = " "
 
 -- Search settings: case-insensitive by default
 vim.opt.ignorecase = true
-vim.opt.smartcase = true  -- If search contains uppercase, then case-sensitive
+vim.opt.smartcase = true -- If search contains uppercase, then case-sensitive
 
 -- Terminal keycode setup for Windows/WSL
 vim.opt.ttimeout = true
@@ -48,10 +48,13 @@ local plugin_files = {
     "plugins.telescope",
     "plugins.flash",
     "plugins.toggleterm",
+    "plugins.todo-comments",
     "plugins.nvim-tree",
     "plugins.osc52",
+    "plugins.formatter",
     "plugins.lsp",
---    "plugins.rainbow-delimiters",
+    "plugins.indent",
+    --    "plugins.rainbow-delimiters",
     "plugins.treesitter-context",
 }
 
@@ -77,8 +80,10 @@ vim.keymap.set('n', '<Esc>', '<Cmd>nohlsearch<CR>', { desc = "Clear search highl
 -- Clipboard
 vim.keymap.set('v', '<D-c>', '"+y<Esc>', { desc = "Copy to system clipboard (Cmd)" })
 vim.keymap.set('v', '<C-c>', '"+y<Esc>', { desc = "Copy to system clipboard" })
-vim.keymap.set({'n', 'v'}, '<C-v>', '"+p', { desc = "Paste from system clipboard" })
-vim.keymap.set({'n', 'v'}, '<D-v>', '"+p', { desc = "Paste from system clipboard (Cmd)" })
+
+vim.keymap.set({ 'n', 'v' }, '<C-v>', '"+p', { desc = "Paste from system clipboard" })
+vim.keymap.set('v', '<C-v>', '"+c<C-r>+<Esc>', { desc = "Clean paste over selection" })
+
 vim.keymap.set('i', '<D-v>', '<C-r>+', { desc = "Paste from system clipboard in insert mode" })
 
 -- Stay in visual mode after shifting
@@ -87,7 +92,7 @@ vim.api.nvim_set_keymap("v", "<", "<gv", { noremap = true, silent = true })
 
 
 -- Save shortcut (normal & insert mode)
-vim.keymap.set({'n', 'i'}, '<C-s>', function() vim.cmd("write") end, { desc = "Save file" })
+vim.keymap.set({ 'n', 'i' }, '<C-s>', function() vim.cmd("write") end, { desc = "Save file" })
 
 -- Select all (Ctrl+a)
 vim.keymap.set('n', '<C-a>', 'ggVG', { noremap = true, desc = "Select entire file" })
@@ -100,4 +105,3 @@ vim.keymap.set('n', '<S-Tab>', '<Cmd>tabprev<CR>', { desc = "Prev Tab" })
 -- Colorscheme
 -- ==========================
 vim.cmd("colorscheme vscode")
-
