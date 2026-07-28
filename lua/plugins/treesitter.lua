@@ -47,11 +47,10 @@ return {
         end
 
         -- Ensure new buffers automatically attach Treesitter
-        vim.api.nvim_create_autocmd({"BufReadPost", "BufNewFile"}, {
+        vim.api.nvim_create_autocmd({ "BufReadPost", "BufNewFile" }, {
             callback = function()
                 vim.cmd("TSBufEnable highlight")
             end,
         })
     end
 }
-

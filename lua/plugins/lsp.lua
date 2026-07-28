@@ -221,9 +221,9 @@ return {
             local spos = vim.fn.screenpos(winid, diag_lnum, diag_col)
 
             local screen_row = (spos.row and spos.row > 0) and spos.row or
-            vim.fn.screenpos(winid, cursor[1], cursor_col + 1).row
+                vim.fn.screenpos(winid, cursor[1], cursor_col + 1).row
             local screen_col = (spos.col and spos.col > 0) and spos.col or
-            vim.fn.screenpos(winid, cursor[1], cursor_col + 1).col
+                vim.fn.screenpos(winid, cursor[1], cursor_col + 1).col
             if not screen_row or screen_row == 0 or not screen_col or screen_col == 0 then
                 return
             end
