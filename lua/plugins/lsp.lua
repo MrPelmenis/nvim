@@ -92,7 +92,7 @@ return {
                         settings = {
                             ["rust-analyzer"] = {
                                 checkOnSave = {
-                                    command = "clippy", -- Runs Clippy lint checks on save to catch snake_case violations
+                                    command = "clippy", -- Runs Clippy lint checks on save
                                 },
                                 diagnostics = {
                                     enable = true,
@@ -262,7 +262,7 @@ return {
 
         -- 3. Global Diagnostics Keymaps
         -- Toggle Visibility between (Errors Only) & (Warnings + Errors)
-        vim.keymap.set('n', '<leader>k', function()
+        vim.keymap.set('n', '<leader>tw', function()
             vim.g.lsp_show_warnings = not vim.g.lsp_show_warnings
             update_diagnostic_ui()
             close_diag_popup()
@@ -304,8 +304,11 @@ return {
                 vim.keymap.set('n', '<leader>vrn', function() vim.lsp.buf.rename() end, opts)
                 vim.keymap.set('n', '<leader>vca', function() vim.lsp.buf.code_action() end, opts)
 
-                -- 'K' triggers the custom side-anchored popup window layout manually
-                vim.keymap.set('n', 'K', function()
+                -- 'Shift-K' (K) opens the LSP Hover popup window (function signatures, params, types)
+                vim.keymap.set('n', 'K', function() vim.lsp.buf.hover() end, opts)
+
+                -- '<leader>k' toggles your custom side-anchored diagnostic error popup window
+                vim.keymap.set('n', '<leader>k', function()
                     if diag_popup.win and vim.api.nvim_win_is_valid(diag_popup.win) then
                         close_diag_popup()
                     else
@@ -335,6 +338,7 @@ return {
                 ['<C-p>'] = cmp.mapping.select_prev_item(),
                 ['<C-n>'] = cmp.mapping.select_next_item(),
                 ['<CR>'] = cmp.mapping.confirm({ select = true }),
+                ["<M-Space>"] = cmp.mapping.complete(),
                 ["<C-Space>"] = cmp.mapping.complete(),
             }),
             formatting = {
