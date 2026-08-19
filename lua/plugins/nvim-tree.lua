@@ -18,30 +18,16 @@ return {
                 -- default mappings
                 api.config.mappings.default_on_attach(bufnr)
 
-                -- override <CR> to handle both files and directories properly
+                -- override <CR> to handle drop for files, and edit for directories
                 vim.keymap.set('n', '<CR>', function()
                     local node = api.tree.get_node_under_cursor()
-                    
-                    -- FILE LOGIC
-                    if node.type == "file" then
-                        -- check if file is already open in a tab
-                        for _, tabpage in ipairs(vim.api.nvim_list_tabpages()) do
-                            for _, win in ipairs(vim.api.nvim_tabpage_list_wins(tabpage)) do
-                                local buf = vim.api.nvim_win_get_buf(win)
-                                if vim.api.nvim_buf_get_name(buf) == node.absolute_path then
-                                    vim.api.nvim_set_current_tabpage(tabpage)
-                                    api.tree.close()
-                                    return
-                                end
-                            end
-                        end
-                        -- not found, open in new tab
-                        api.node.open.tab(node)
 
-                    -- DIRECTORY LOGIC
-                    elseif node.type == "directory" then
-                        -- Open, close, or enter the directory normally
+                    if node.type == "directory" then
+                        -- Expand/Collapse directory
                         api.node.open.edit(node)
+                    else
+                        -- Jump to the tab if open, otherwise open it
+                        api.node.open.drop(node)
                     end
                 end, opts)
             end,

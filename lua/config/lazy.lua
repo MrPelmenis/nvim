@@ -16,6 +16,9 @@ vim.g.mapleader = " "
 vim.opt.ignorecase = true
 vim.opt.smartcase = true -- If search contains uppercase, then case-sensitive
 
+
+vim.opt.switchbuf = "useopen,usetab"
+
 -- Terminal keycode setup for Windows/WSL
 vim.opt.ttimeout = true
 vim.opt.ttimeoutlen = 50

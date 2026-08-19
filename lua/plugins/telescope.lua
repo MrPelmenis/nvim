@@ -7,6 +7,23 @@ return {
         local actions = require("telescope.actions")
         local action_state = require("telescope.actions.state")
 
+        -- Custom tab-drop action using Neovim's native `:tab drop`
+        local function select_tab_drop(prompt_bufnr)
+            local entry = action_state.get_selected_entry()
+            actions.close(prompt_bufnr)
+            if not entry then return end
+
+            local file_path = entry.path or entry.filename or entry.value
+            if not file_path then return end
+
+            local lnum = entry.lnum and (" +" .. entry.lnum) or ""
+            vim.cmd("tab drop" .. lnum .. " " .. vim.fn.fnameescape(file_path))
+
+            if entry.col then
+                pcall(vim.api.nvim_win_set_cursor, 0, { entry.lnum or 1, entry.col - 1 })
+            end
+        end
+
         -- Close Telescope without letting a stray keycode switch tabs
         local function safe_close(prompt_bufnr)
             local tab = vim.api.nvim_get_current_tabpage()
@@ -16,76 +33,6 @@ return {
                     pcall(vim.api.nvim_set_current_tabpage, tab)
                 end
             end, 70) -- must be > ttimeoutlen (50)
-        end
-
-        -- Open in new tab, or jump to existing tab, at the right line/col
-        local function open_in_new_tab(prompt_bufnr)
-            local entry = action_state.get_selected_entry()
-            if not entry then
-                actions.close(prompt_bufnr)
-                return
-            end
-
-            local file_path = entry.path or entry.value or entry.filename
-            if not file_path and entry[1] then
-                local picker = action_state.get_current_picker(prompt_bufnr)
-                local cwd = picker and picker.cwd or vim.fn.getcwd()
-                file_path = vim.fn.fnamemodify(cwd .. "/" .. entry[1], ":p")
-            end
-            if not file_path then
-                actions.select_default(prompt_bufnr)
-                return
-            end
-
-            local line_num = entry.lnum
-            local col_num = entry.col
-            local normalized_new = vim.fn.fnamemodify(file_path, ':p')
-            local found_tab, found_win = nil, nil
-
-            for _, tab in ipairs(vim.api.nvim_list_tabpages()) do
-                for _, win in ipairs(vim.api.nvim_tabpage_list_wins(tab)) do
-                    local buf = vim.api.nvim_win_get_buf(win)
-                    local buf_name = vim.api.nvim_buf_get_name(buf)
-                    if buf_name ~= "" then
-                        if vim.fn.fnamemodify(buf_name, ':p') == normalized_new then
-                            found_tab, found_win = tab, win
-                            break
-                        end
-                    end
-                end
-                if found_tab then break end
-            end
-
-            actions.close(prompt_bufnr)
-
-            if found_tab then
-                vim.api.nvim_set_current_tabpage(found_tab)
-                vim.api.nvim_set_current_win(found_win)
-                vim.defer_fn(function()
-                    if line_num and type(line_num) == 'number' then
-                        vim.cmd('normal! ' .. line_num .. 'G')
-                        if col_num and type(col_num) == 'number' then
-                            vim.cmd('normal! ' .. col_num .. '|zt')
-                        else
-                            vim.cmd('normal! zz')
-                        end
-                    end
-                end, 0)
-            else
-                local cmd = 'tabnew'
-                if line_num and type(line_num) == 'number' then
-                    cmd = cmd .. ' +' .. line_num
-                end
-                cmd = cmd .. ' ' .. vim.fn.fnameescape(file_path)
-                vim.defer_fn(function()
-                    vim.cmd(cmd)
-                    if col_num and type(col_num) == 'number' then
-                        vim.cmd('normal! ' .. col_num .. '|zt')
-                    elseif line_num then
-                        vim.cmd('normal! zz')
-                    end
-                end, 10)
-            end
         end
 
         require("telescope").setup({
@@ -101,11 +48,11 @@ return {
                 },
                 mappings = {
                     i = {
-                        ["<CR>"]  = open_in_new_tab,
+                        ["<CR>"]  = select_tab_drop,
                         ["<Esc>"] = safe_close,
                     },
                     n = {
-                        ["<CR>"]  = open_in_new_tab,
+                        ["<CR>"]  = select_tab_drop,
                         ["<Esc>"] = safe_close,
                     },
                 },
