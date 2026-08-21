@@ -330,6 +330,74 @@ return {
             print("No errors found!")
         end, { desc = "Go to first error in file/codebase" })
 
+        -- Go to the first error in the file, or fallback to the codebase
+        vim.keymap.set('n', '<leader>ge', function()
+            -- 1. Check for errors in the current buffer
+            local buf_errs = vim.diagnostic.get(0, { severity = vim.diagnostic.severity.ERROR })
+
+            if #buf_errs > 0 then
+                -- Sort to ensure we grab the top-most error in the file
+                table.sort(buf_errs, function(a, b)
+                    if a.lnum == b.lnum then return (a.col or 0) < (b.col or 0) end
+                    return (a.lnum or 0) < (b.lnum or 0)
+                end)
+
+                local first = buf_errs[1]
+                vim.api.nvim_win_set_cursor(0, { first.lnum + 1, first.col })
+                vim.diagnostic.open_float() -- Optionally open the float right away
+                print("Jumped to first error in current file")
+                return
+            end
+
+            -- 2. If no local errors, check all active buffers in the workspace
+            local all_errs = vim.diagnostic.get(nil, { severity = vim.diagnostic.severity.ERROR })
+
+            if #all_errs > 0 then
+                local first = all_errs[1]
+                -- Switch to the buffer containing the error
+                vim.api.nvim_set_current_buf(first.bufnr)
+                vim.api.nvim_win_set_cursor(0, { first.lnum + 1, first.col })
+                vim.diagnostic.open_float()
+                print("Jumped to first error in workspace")
+                return
+            end
+
+            print("No errors found!")
+        end, { desc = "Go to first error in file/codebase" })
+
+        -- Go to the first warning in the file, or fallback to the codebase
+        vim.keymap.set('n', '<leader>gw', function()
+            -- 1. Check for warnings in the current buffer
+            local buf_warns = vim.diagnostic.get(0, { severity = vim.diagnostic.severity.WARN })
+
+            if #buf_warns > 0 then
+                table.sort(buf_warns, function(a, b)
+                    if a.lnum == b.lnum then return (a.col or 0) < (b.col or 0) end
+                    return (a.lnum or 0) < (b.lnum or 0)
+                end)
+
+                local first = buf_warns[1]
+                vim.api.nvim_win_set_cursor(0, { first.lnum + 1, first.col })
+                vim.diagnostic.open_float()
+                print("Jumped to first warning in current file")
+                return
+            end
+
+            -- 2. If no local warnings, check all active buffers in the workspace
+            local all_warns = vim.diagnostic.get(nil, { severity = vim.diagnostic.severity.WARN })
+
+            if #all_warns > 0 then
+                local first = all_warns[1]
+                vim.api.nvim_set_current_buf(first.bufnr)
+                vim.api.nvim_win_set_cursor(0, { first.lnum + 1, first.col })
+                vim.diagnostic.open_float()
+                print("Jumped to first warning in workspace")
+                return
+            end
+
+            print("No warnings found!")
+        end, { desc = "Go to first warning in file/codebase" })
+
 
         -- Buffer Local Actions (Applies when an LSP is hooked)
         vim.api.nvim_create_autocmd('LspAttach', {
