@@ -10,6 +10,7 @@ return {
         "hrsh7th/nvim-cmp",
         "L3MON4D3/LuaSnip",
         "saadparwaiz1/cmp_luasnip",
+        "lukas-reineke/cmp-under-comparator", -- Smart sorting for private/under-scored variables
         "j-hui/fidget.nvim",
         "luckasRanarison/tailwind-tools.nvim",
         "roobert/tailwindcss-colorizer-cmp.nvim",
@@ -44,7 +45,8 @@ return {
         require("mason").setup()
         require("mason-lspconfig").setup({
             ensure_installed = {
-                "clangd", "ts_ls", "eslint", "lua_ls", "pylsp", "tailwindcss", "rust_analyzer",
+                "clangd", "ts_ls", "eslint", "lua_ls", "pylsp", "tailwindcss", "rust_analyzer", "gopls",
+                "jsonls", "cssls", "html", "emmet_ls",
             },
             handlers = {
                 -- Default handler for general servers
@@ -85,14 +87,34 @@ return {
                     })
                 end,
 
-                -- Specific handler for Rust (Casing Rules lint configuration)
+                -- Specific handler for Python (pylsp)
+                ["pylsp"] = function()
+                    require("lspconfig").pylsp.setup({
+                        capabilities = capabilities,
+                        settings = {
+                            pylsp = {
+                                plugins = {
+                                    pycodestyle = {
+                                        enabled = true,
+                                        ignore = { "E501", "E231" },
+                                        maxLineLength = 120,
+                                    },
+                                    pyflakes = { enabled = true },
+                                    mccabe = { enabled = false },
+                                },
+                            },
+                        },
+                    })
+                end,
+
+                -- Specific handler for Rust
                 ["rust_analyzer"] = function()
                     require("lspconfig").rust_analyzer.setup({
                         capabilities = capabilities,
                         settings = {
                             ["rust-analyzer"] = {
                                 checkOnSave = {
-                                    command = "clippy", -- Runs Clippy lint checks on save
+                                    command = "clippy",
                                 },
                                 diagnostics = {
                                     enable = true,
@@ -129,7 +151,7 @@ return {
                 severity_setting = { min = vim.diagnostic.severity.WARN }
             end
 
-            vim.diagnostic.reset() -- Clean cache to prevent inline duplication overlays
+            vim.diagnostic.reset()
 
             vim.diagnostic.config({
                 update_in_insert = vim.g.lsp_inline_errors_update_in_insert,
@@ -253,7 +275,6 @@ return {
             diag_popup.buf = float_buf
         end
 
-        -- Autocommands to dismiss side-popup window
         local diag_popup_group = vim.api.nvim_create_augroup("LspDiagnosticPopup", { clear = true })
         vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI", "InsertEnter", "BufLeave", "WinLeave" }, {
             group = diag_popup_group,
@@ -261,7 +282,6 @@ return {
         })
 
         -- 3. Global Diagnostics Keymaps
-        -- Toggle Visibility between (Errors Only) & (Warnings + Errors)
         vim.keymap.set('n', '<leader>tw', function()
             vim.g.lsp_show_warnings = not vim.g.lsp_show_warnings
             update_diagnostic_ui()
@@ -273,7 +293,6 @@ return {
             end
         end, { desc = "Toggle LSP Warning Visibility" })
 
-        -- Yank/Copy Error text under cursor directly to system clipboard
         vim.keymap.set('n', '<leader>cy', function()
             local bufnr = vim.api.nvim_get_current_buf()
             local cursor = vim.api.nvim_win_get_cursor(0)
@@ -293,33 +312,23 @@ return {
             print("Copied diagnostic to clipboard!")
         end, { desc = "Copy current diagnostic error text" })
 
-
-
-        -- Go to the first error in the file, or fallback to the codebase
         vim.keymap.set('n', '<leader>ge', function()
-            -- 1. Check for errors in the current buffer
             local buf_errs = vim.diagnostic.get(0, { severity = vim.diagnostic.severity.ERROR })
-
             if #buf_errs > 0 then
-                -- Sort to ensure we grab the top-most error in the file
                 table.sort(buf_errs, function(a, b)
                     if a.lnum == b.lnum then return (a.col or 0) < (b.col or 0) end
                     return (a.lnum or 0) < (b.lnum or 0)
                 end)
-
                 local first = buf_errs[1]
                 vim.api.nvim_win_set_cursor(0, { first.lnum + 1, first.col })
-                vim.diagnostic.open_float() -- Optionally open the float right away
+                vim.diagnostic.open_float()
                 print("Jumped to first error in current file")
                 return
             end
 
-            -- 2. If no local errors, check all active buffers in the workspace
             local all_errs = vim.diagnostic.get(nil, { severity = vim.diagnostic.severity.ERROR })
-
             if #all_errs > 0 then
                 local first = all_errs[1]
-                -- Switch to the buffer containing the error
                 vim.api.nvim_set_current_buf(first.bufnr)
                 vim.api.nvim_win_set_cursor(0, { first.lnum + 1, first.col })
                 vim.diagnostic.open_float()
@@ -330,52 +339,13 @@ return {
             print("No errors found!")
         end, { desc = "Go to first error in file/codebase" })
 
-        -- Go to the first error in the file, or fallback to the codebase
-        vim.keymap.set('n', '<leader>ge', function()
-            -- 1. Check for errors in the current buffer
-            local buf_errs = vim.diagnostic.get(0, { severity = vim.diagnostic.severity.ERROR })
-
-            if #buf_errs > 0 then
-                -- Sort to ensure we grab the top-most error in the file
-                table.sort(buf_errs, function(a, b)
-                    if a.lnum == b.lnum then return (a.col or 0) < (b.col or 0) end
-                    return (a.lnum or 0) < (b.lnum or 0)
-                end)
-
-                local first = buf_errs[1]
-                vim.api.nvim_win_set_cursor(0, { first.lnum + 1, first.col })
-                vim.diagnostic.open_float() -- Optionally open the float right away
-                print("Jumped to first error in current file")
-                return
-            end
-
-            -- 2. If no local errors, check all active buffers in the workspace
-            local all_errs = vim.diagnostic.get(nil, { severity = vim.diagnostic.severity.ERROR })
-
-            if #all_errs > 0 then
-                local first = all_errs[1]
-                -- Switch to the buffer containing the error
-                vim.api.nvim_set_current_buf(first.bufnr)
-                vim.api.nvim_win_set_cursor(0, { first.lnum + 1, first.col })
-                vim.diagnostic.open_float()
-                print("Jumped to first error in workspace")
-                return
-            end
-
-            print("No errors found!")
-        end, { desc = "Go to first error in file/codebase" })
-
-        -- Go to the first warning in the file, or fallback to the codebase
         vim.keymap.set('n', '<leader>gw', function()
-            -- 1. Check for warnings in the current buffer
             local buf_warns = vim.diagnostic.get(0, { severity = vim.diagnostic.severity.WARN })
-
             if #buf_warns > 0 then
                 table.sort(buf_warns, function(a, b)
                     if a.lnum == b.lnum then return (a.col or 0) < (b.col or 0) end
                     return (a.lnum or 0) < (b.lnum or 0)
                 end)
-
                 local first = buf_warns[1]
                 vim.api.nvim_win_set_cursor(0, { first.lnum + 1, first.col })
                 vim.diagnostic.open_float()
@@ -383,9 +353,7 @@ return {
                 return
             end
 
-            -- 2. If no local warnings, check all active buffers in the workspace
             local all_warns = vim.diagnostic.get(nil, { severity = vim.diagnostic.severity.WARN })
-
             if #all_warns > 0 then
                 local first = all_warns[1]
                 vim.api.nvim_set_current_buf(first.bufnr)
@@ -398,22 +366,22 @@ return {
             print("No warnings found!")
         end, { desc = "Go to first warning in file/codebase" })
 
-
-        -- Buffer Local Actions (Applies when an LSP is hooked)
+        -- Buffer Local Actions
         vim.api.nvim_create_autocmd('LspAttach', {
             desc = 'LSP actions',
             callback = function(event)
                 local opts = { buffer = event.buf }
 
                 vim.keymap.set('n', 'gd', function() vim.lsp.buf.definition() end, opts)
+                vim.keymap.set('n', 'gD', function() vim.lsp.buf.declaration() end, opts)
+                vim.keymap.set('n', 'gI', function() vim.lsp.buf.implementation() end, opts)
+                vim.keymap.set('n', '<leader>D', function() vim.lsp.buf.type_definition() end, opts)
+                vim.keymap.set('n', '<leader>vws', function() vim.lsp.buf.workspace_symbol() end, opts)
                 vim.keymap.set('n', '<leader>vd', function() vim.diagnostic.open_float() end, opts)
                 vim.keymap.set('n', '<leader>vrn', function() vim.lsp.buf.rename() end, opts)
                 vim.keymap.set('n', '<leader>vca', function() vim.lsp.buf.code_action() end, opts)
-
-                -- 'Shift-K' (K) opens the LSP Hover popup window (function signatures, params, types)
                 vim.keymap.set('n', 'K', function() vim.lsp.buf.hover() end, opts)
 
-                -- '<leader>k' toggles your custom side-anchored diagnostic error popup window
                 vim.keymap.set('n', '<leader>k', function()
                     if diag_popup.win and vim.api.nvim_win_is_valid(diag_popup.win) then
                         close_diag_popup()
@@ -447,6 +415,18 @@ return {
                 ["<M-Space>"] = cmp.mapping.complete(),
                 ["<C-Space>"] = cmp.mapping.complete(),
             }),
+            sorting = {
+                comparators = {
+                    cmp.config.compare.offset,
+                    cmp.config.compare.exact,
+                    cmp.config.compare.score,
+                    require("cmp-under-comparator").under,
+                    cmp.config.compare.kind,
+                    cmp.config.compare.sort_text,
+                    cmp.config.compare.length,
+                    cmp.config.compare.order,
+                },
+            },
             formatting = {
                 format = function(entry, vim_item)
                     local formatted = tailwind_colorizer.formatter(entry, vim_item)
@@ -461,8 +441,26 @@ return {
             sources = cmp.config.sources({
                 { name = 'nvim_lsp' },
                 { name = 'luasnip' },
+                { name = 'path' }, -- Added file path suggestions
             }, {
                 { name = 'buffer' },
+            })
+        })
+
+        -- Cmdline setup for `/`, `?` and `:`
+        cmp.setup.cmdline({ '/', '?' }, {
+            mapping = cmp.mapping.preset.cmdline(),
+            sources = {
+                { name = 'buffer' }
+            }
+        })
+
+        cmp.setup.cmdline(':', {
+            mapping = cmp.mapping.preset.cmdline(),
+            sources = cmp.config.sources({
+                { name = 'path' }
+            }, {
+                { name = 'cmdline' }
             })
         })
     end

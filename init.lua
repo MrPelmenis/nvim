@@ -6,6 +6,9 @@ vim.cmd("set shiftwidth=4")
 
 vim.g.mapleader = " "
 
+vim.keymap.set({ 'n', 'v', 'i', 'x' }, '<C-z>', '<Nop>', { noremap = true, silent = true })
+
+vim.opt.scrolloff = 10
 
 vim.g.neovide_padding_top = 0
 vim.g.neovide_padding_bottom = 0
@@ -18,4 +21,3 @@ vim.g.loaded_netrw = 1
 vim.g.loaded_netrwPlugin = 1
 
 require("config.lazy")
-
